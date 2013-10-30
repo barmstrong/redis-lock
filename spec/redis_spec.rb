@@ -58,6 +58,17 @@ describe 'redis' do
     @redis.get('lock:test_key').should be_nil
   end
 
+  it "should unlock if lock_for_update throws an exception" do
+    begin
+      @redis.lock_for_update('test_key', 9000) do
+        @redis.get('lock:test_key').should_not be_nil
+        raise Exception.new
+      end
+    rescue Exception
+      @redis.get('lock:test_key').should be_nil
+    end
+  end
+
   it "should keep trying to lock a key" do
     time = DateTime.now
     @redis.lock('test_key', 9000)
